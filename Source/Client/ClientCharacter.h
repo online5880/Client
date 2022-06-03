@@ -50,11 +50,20 @@ protected:
 
 	/** Handler for when a touch input stops. */
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
-
-protected:
+	
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// End of APawn interface
+	FSocket* CreateSocket(const FString& Ip,const int32& Port);
+
+	UFUNCTION(BlueprintCallable)
+	void Connect();
+
+	UFUNCTION(BlueprintCallable)
+	void SendData();
+
+private:
+	FSocket* Socket;
 
 public:
 	/** Returns CameraBoom subobject **/

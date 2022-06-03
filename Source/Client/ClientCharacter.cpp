@@ -1,12 +1,16 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "ClientCharacter.h"
+
+#include "Sockets.h"
+#include "SocketSubsystem.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Interfaces/IPv4/IPv4Address.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AClientCharacter
@@ -127,3 +131,49 @@ void AClientCharacter::MoveRight(float Value)
 		AddMovementInput(Direction, Value);
 	}
 }
+
+FSocket* AClientCharacter::CreateSocket(const FString& Ip, const int32& Port)
+{
+	FSocket* s = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateSocket(
+		NAME_Stream,"TCP",false);
+
+	FIPv4Address ip;
+	FIPv4Address::Parse(Ip,ip);
+	
+	TSharedRef<FInternetAddr> Addr =
+		ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateInternetAddr();
+	Addr->SetIp(ip.Value);
+	Addr->SetPort(Port);
+
+	if(s->Connect(*Addr))
+	{
+		GEngine->AddOnScreenDebugMessage(-1,
+			5.f, FColor::Orange,
+			FString::Printf(TEXT("연결 성공")));
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1,
+			5.f, FColor::Orange, FString::Printf(TEXT("연결 성공")));
+	}
+	return s;
+}
+
+void AClientCharacter::Connect()
+{
+	Socket = CreateSocket("127.0.0.1",1234);
+}
+
+void AClientCharacter::SendData()
+{
+	FString str = "Message";
+	const TCHAR* tchar = str.GetCharArray().GetData();
+	int32 Size = FCString::Strlen(tchar);
+	int32 Byte = 0;
+	
+	if(Socket && tchar != nullptr)
+	{
+		Socket->Send(reinterpret_cast<uint8*>(TCHAR_TO_UTF8(tchar)),Size,Byte);
+	}
+}
+
