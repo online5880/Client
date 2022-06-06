@@ -157,16 +157,17 @@ FSocket* AClientCharacter::CreateSocket(const FString& Ip, const int32& Port)
 			5.f, FColor::Orange, FString::Printf(TEXT("연결 성공")));
 	}
 	return s;
+	
 }
 
 void AClientCharacter::Connect()
 {
-	Socket = CreateSocket("127.0.0.1",1234);
+	Socket = CreateSocket("192.168.219.110",10200);
 }
 
-void AClientCharacter::SendData()
+void AClientCharacter::SendData(const FString& Msg)
 {
-	FString str = "Message";
+	FString str = Msg;
 	const TCHAR* tchar = str.GetCharArray().GetData();
 	int32 Size = FCString::Strlen(tchar);
 	int32 Byte = 0;
@@ -174,6 +175,19 @@ void AClientCharacter::SendData()
 	if(Socket && tchar != nullptr)
 	{
 		Socket->Send(reinterpret_cast<uint8*>(TCHAR_TO_UTF8(tchar)),Size,Byte);
+		GEngine->AddOnScreenDebugMessage(-1,
+			5.f, FColor::Orange, FString::Printf(TEXT("전송 성공")));
 	}
+}
+
+void AClientCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if(Socket)
+	{
+		Socket->Close();
+    	Socket = nullptr;
+	}
+	
+	Super::EndPlay(EndPlayReason);
 }
 
